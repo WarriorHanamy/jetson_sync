@@ -26,7 +26,7 @@ class ThrustCalibration:
         self.last_records_t = rospy.get_rostime()
 
         # Some flags
-        self.count_start_trigger_received = 0
+        self.is_recording = False
 
         # Subscribe
         self.bat_sub = rospy.Subscriber(
@@ -81,10 +81,19 @@ class ThrustCalibration:
             rospy.loginfo("Start recording.")
         else:
             self.is_recording = False
-            if self.volt_records.size > 0:
+            if self.volt_records.size > 0 or self.volt_buf.size > 0:
+                if self.volt_buf.size > 0:
+                    self.volt_records = np.append(
+                        self.volt_records, np.array([np.mean(self.volt_buf)]), axis=0
+                    )
+                    self.cmd_records = np.append(
+                        self.cmd_records, np.array([np.mean(self.cmd_buf)]), axis=0
+                    )
                 self.cal_and_save_data()
                 self.volt_records = np.array([])
                 self.cmd_records = np.array([])
+                self.volt_buf = np.array([])
+                self.cmd_buf = np.array([])
             rospy.loginfo("Stop recording.")
 
     def cal_and_save_data(self):
