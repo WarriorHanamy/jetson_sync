@@ -18,3 +18,6 @@ include_directories(
 
 add_executable(vio_to_mavros_odom src/vio_to_mavros_odom.cpp)
 target_link_libraries(vio_to_mavros_odom ${catkin_LIBRARIES})
+
+add_executable(mocap_to_mavros_odom src/mocap_to_mavros_odom.cpp)
+target_link_libraries(mocap_to_mavros_odom ${catkin_LIBRARIES})

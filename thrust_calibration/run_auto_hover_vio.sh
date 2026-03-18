@@ -14,7 +14,7 @@ fn_tmux_split_h "$SESSION" 0
 fn_tmux_split_v "$SESSION" 0
 fn_tmux_split_v "$SESSION" 1
 
-fn_tmux_run "$SESSION" 0 "roslaunch mavros px4.launch fcu_url:='/dev/ttyTHS0:921600'"
+fn_tmux_run "$SESSION" 0 "roslaunch mavros px4.launch fcu_url:='/dev/ttyTHS0:921600' gcs_url:='udp://@192.168.110.229:14550'"
 fn_tmux_run "$SESSION" 0 "sleep 5"
 fn_tmux_run "$SESSION" 0 "rosrun mavros mavcmd long 511 31 5000 0 0 0 0 0" # ATTITUDE QUATERNION
 fn_tmux_run "$SESSION" 0 "sleep 1"
