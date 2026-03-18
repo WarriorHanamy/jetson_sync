@@ -91,6 +91,20 @@ sync_device_time() {
     log_info "Device time synced to: ${host_time}"
 }
 
+ensure_docker_group() {
+    log_step "Checking docker group membership..."
+    NV_SSH_EXTRA_OPTS=(-o BatchMode=yes -o ConnectTimeout=5)
+    fn_nv_reset_ssh
+    fn_nv_ensure_ssh
+    if "${SSH_CMD[@]}" "groups" | grep -q '\bdocker\b'; then
+        log_info "User already in docker group"
+        return 0
+    fi
+    log_warn "User not in docker group, adding..."
+    "${SSH_CMD[@]}" "sudo usermod -aG docker ${DEVICE_USER}"
+    log_info "User added to docker group (requires re-login to take effect)"
+}
+
 ensure_remote_dir() {
     log_step "Ensuring remote directory exists..."
     NV_SSH_EXTRA_OPTS=(-o BatchMode=yes -o ConnectTimeout=5)
@@ -243,6 +257,7 @@ main() {
     check_lsyncd
     check_ssh
     ensure_sudoer
+    ensure_docker_group
     sync_device_time
     fn_nv_setup_apt_sources
     ensure_remote_dir
