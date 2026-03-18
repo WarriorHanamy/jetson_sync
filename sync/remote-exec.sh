@@ -13,6 +13,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 LOG_DIR="${PROJECT_ROOT}/logs"
 DEVICE_WORKSPACE="/home/nv/arec_bags"
 SYNC_TIMEOUT=60
+CATKIN_PKG=""
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -50,13 +51,20 @@ remote_catkin_make() {
     wait_for_sync
     ensure_remote_log_dirs
     
+    fn_nv_ensure_ssh
+    
+    local build_dir="${DEVICE_WORKSPACE}"
+    
+    if [[ -n "${CATKIN_PKG}" ]]; then
+        build_dir="${DEVICE_WORKSPACE}/${CATKIN_PKG}"
+        log_step "Building package in-place: ${CATKIN_PKG}"
+    fi
+    
     log_step "Running catkin_make on ${DEVICE_USER}@${DEVICE_IP}..."
     log_info "Log file: ${log_file}"
     echo ""
     
-    fn_nv_ensure_ssh
-    
-    local catkin_cmd="cd ${DEVICE_WORKSPACE} && source /opt/ros/noetic/setup.bash && catkin_make ${catkin_args[*]:-}"
+    local catkin_cmd="bash -lc 'cd ${build_dir} && source /opt/ros/noetic/setup.bash && catkin_make ${catkin_args[*]:-}'"
     
     local exit_code=0
     "${SSH_CMD[@]}" "${catkin_cmd}" 2>&1 | tee "$log_file" || exit_code=$?
@@ -132,6 +140,7 @@ Remote execution wrapper. Invoke via symlink:
 
 Options:
     -h, --help              Show this help message
+    -p, --package NAME      Build specific catkin package (creates src/ symlink)
     --sync-timeout SECS     Syncthing sync timeout (default: ${SYNC_TIMEOUT})
 
 Environment (from sync/.env):
@@ -148,6 +157,10 @@ main() {
             -h|--help)
                 show_help_flag=1
                 shift
+                ;;
+            -p|--package)
+                CATKIN_PKG="$2"
+                shift 2
                 ;;
             --sync-timeout)
                 SYNC_TIMEOUT="$2"

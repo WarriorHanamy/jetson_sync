@@ -4,9 +4,11 @@
 
 class VioToMavrosOdom {
 public:
-  VioToMavrosOdom() {
+  VioToMavrosOdom() : last_pub_time_(0) {
     ros::NodeHandle nh;
     ros::NodeHandle pnh("~");
+    pnh.param("output_rate", output_rate_, 50.0);
+    min_interval_ = 1.0 / output_rate_;
     sub_ = pnh.subscribe("odom", 50, &VioToMavrosOdom::cb, this);
     pub_ = nh.advertise<nav_msgs::Odometry>("/mavros/odometry/out", 50);
   }
@@ -14,11 +16,18 @@ public:
 private:
   ros::Subscriber sub_;
   ros::Publisher pub_;
+  double output_rate_;
+  double min_interval_;
+  ros::Time last_pub_time_;
 
   static const Eigen::Quaterniond q_enu_ned;
   static const Eigen::Quaterniond q_flu_frd;
 
   void cb(const nav_msgs::Odometry::ConstPtr& msg) {
+    ros::Time now = ros::Time::now();
+    if ((now - last_pub_time_).toSec() < min_interval_) return;
+    last_pub_time_ = now;
+
     nav_msgs::Odometry out;
     out.header.stamp = ros::Time::now();
     out.header.frame_id = "odom_frd";

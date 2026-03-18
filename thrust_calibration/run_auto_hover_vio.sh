@@ -36,8 +36,8 @@ fn_tmux_run "$SESSION" 2 'bash -lc "source /opt/ros/noetic/setup.bash && source 
 
 
 fn_tmux_run "$SESSION" 3 "sleep 1"
-
-fn_tmux_run "$SESSION" 3 'bash -lc "source /opt/ros/noetic/setup.bash && source /home/nv/Fast-Drone-250-master/devel/setup.bash && exec roslaunch px4ctrl run_ctrl.launch"'
+fn_tmux_run "$SESSION" 3 "until rostopic list | grep -q '/vins_fusion/imu_propagate'; do sleep 0.5; done"
+fn_tmux_run "$SESSION" 3 'bash -lc "source /opt/ros/noetic/setup.bash && source /home/nv/arec_bags/simple_px4_odom/devel/setup.bash && exec roslaunch simple_px4_odom vio_to_mavros_odom.launch input_odom:=/vins_fusion/imu_propagate"'
 
 
 fn_tmux_attach "$SESSION"

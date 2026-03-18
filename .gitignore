@@ -1,4 +1,6 @@
 logs/catkin/*.log
 logs/tmux/*.log
 !.gitkeep
-.stfolder/
+.st*/
+build/
+devel/
