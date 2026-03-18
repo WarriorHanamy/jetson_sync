@@ -5,12 +5,11 @@
 class VioToMavrosOdom {
 public:
   VioToMavrosOdom() : last_pub_time_(0) {
-    ros::NodeHandle nh;
     ros::NodeHandle pnh("~");
     pnh.param("output_rate", output_rate_, 50.0);
     min_interval_ = 1.0 / output_rate_;
     sub_ = pnh.subscribe("odom", 50, &VioToMavrosOdom::cb, this);
-    pub_ = nh.advertise<nav_msgs::Odometry>("/mavros/odometry/out", 50);
+    pub_ = pnh.advertise<nav_msgs::Odometry>("/mavros/odometry/out", 50);
   }
 
 private:
@@ -30,8 +29,8 @@ private:
 
     nav_msgs::Odometry out;
     out.header.stamp = ros::Time::now();
-    out.header.frame_id = "odom_frd";
-    out.child_frame_id = "base_link_frd";
+    out.header.frame_id = "odom";
+    out.child_frame_id = "base_link";
 
     Eigen::Vector3d p_enu(msg->pose.pose.position.x,
                           msg->pose.pose.position.y,
