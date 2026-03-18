@@ -1,0 +1,7 @@
+<launch>
+  <arg name="input_odom" default="/vio/odom" doc="Input VIO odometry topic (FLU frame)"/>
+
+  <node pkg="simple_px4_odom" type="vio_to_mavros_odom" name="vio_to_mavros_odom" output="screen">
+    <remap from="odom" to="$(arg input_odom)"/>
+  </node>
+</launch>
