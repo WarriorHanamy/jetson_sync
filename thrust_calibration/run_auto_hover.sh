@@ -23,5 +23,5 @@ roslaunch ekf_quat nokov.launch & sleep 2;
 
 
 
-roslaunch px4ctrl run_ctrl_nnpolicy.launch & sleep 2;
+roslaunch run_auto_hover.launch & sleep 2;
 echo "nv" | sudo jetson_clocks & sleep 2;

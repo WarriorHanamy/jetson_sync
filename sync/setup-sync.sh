@@ -80,6 +80,17 @@ ensure_sudoer() {
     log_info "Passwordless sudo enabled"
 }
 
+sync_device_time() {
+    log_step "Syncing device time from host..."
+    NV_SSH_EXTRA_OPTS=(-o BatchMode=yes -o ConnectTimeout=5)
+    fn_nv_reset_ssh
+    fn_nv_ensure_ssh
+    local host_time
+    host_time=$(date '+%Y-%m-%d %H:%M:%S')
+    "${SSH_CMD[@]}" "sudo date -s '${host_time}'"
+    log_info "Device time synced to: ${host_time}"
+}
+
 ensure_remote_dir() {
     log_step "Ensuring remote directory exists..."
     NV_SSH_EXTRA_OPTS=(-o BatchMode=yes -o ConnectTimeout=5)
@@ -232,6 +243,7 @@ main() {
     check_lsyncd
     check_ssh
     ensure_sudoer
+    sync_device_time
     ensure_remote_dir
     create_config_dir
     generate_env_file
