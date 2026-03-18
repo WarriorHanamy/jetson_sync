@@ -96,3 +96,10 @@ fn_nv_run_remote_bash_script() {
   script="$(cat)"
   fn_nv_run_remote_bash "$script"
 }
+
+fn_nv_setup_apt_sources() {
+  fn_nv_ensure_ssh
+  fn_nv_load_env
+  fn_nv_log_info "setting up apt sources on ${SSH_TARGET}"
+  "${SSH_CMD[@]}" "sudo find /etc/apt -type f \\( -name '*.list' -o -name '*.sources' \\) -exec sed -i 's|http://ports.ubuntu.com/ubuntu-ports|https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports|g' {} + && sudo find /etc/apt -type f \\( -name '*.list' -o -name '*.sources' \\) -exec sed -i 's|https://mirrors.aliyun.com/ubuntu-ports|https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports|g' {} + && sudo find /etc/apt -type f \\( -name '*.list' -o -name '*.sources' \\) -exec sed -i 's|https://download.docker.com/linux/ubuntu|https://mirrors.tuna.tsinghua.edu.cn/docker-ce/linux/ubuntu|g' {} + && echo 'Acquire::ForceIPv4 \"true\";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4 && echo -e 'Acquire::http::Proxy \"http://${HOST_IP}:${PROXY_PORT}/\";\nAcquire::https::Proxy \"http://${HOST_IP}:${PROXY_PORT}/\";' | sudo tee /etc/apt/apt.conf.d/99proxy && sudo apt update"
+}

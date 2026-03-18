@@ -33,6 +33,6 @@ fn_tmux_run "$SESSION" 1 "roslaunch ekf_quat nokov.launch"
 
 fn_tmux_split_v "$SESSION" 1
 fn_tmux_run "$SESSION" 2 "sleep 14"
-fn_tmux_run "$SESSION" 2 "roslaunch run_auto_hover.launch"
+fn_tmux_run "$SESSION" 2 "roslaunch /home/nv/arec_bags/thrust_calibration/run_auto_hover.launch"
 
 fn_tmux_attach "$SESSION"

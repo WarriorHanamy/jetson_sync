@@ -244,6 +244,7 @@ main() {
     check_ssh
     ensure_sudoer
     sync_device_time
+    fn_nv_setup_apt_sources
     ensure_remote_dir
     create_config_dir
     generate_env_file
