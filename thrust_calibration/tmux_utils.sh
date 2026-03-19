@@ -13,6 +13,16 @@ fn_tmux_run() {
   tmux send-keys -t "$session:0.$pane" "$*" Enter
 }
 
+fn_tmux_run_bash() {
+  local session="${1:-main}"
+  local pane="${2:-0}"
+  local script="${3:-}"
+  local command=""
+
+  printf -v command 'bash -lc %q' "$script"
+  fn_tmux_run "$session" "$pane" "$command"
+}
+
 fn_tmux_split_h() {
   local session="${1:-main}"
   local pane="${2:-0}"
