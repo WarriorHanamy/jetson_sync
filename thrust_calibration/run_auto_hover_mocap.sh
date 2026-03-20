@@ -10,6 +10,7 @@ source "$SCRIPT_DIR/tmux_utils.sh"
 SESSION="${SESSION:-auto_hover}"
 SERIAL_PORT="${SERIAL_PORT:-/dev/ttyTHS0}"
 BAUDRATE="${BAUDRATE:-921600}"
+GCS_URL="${GCS_URL:-udp://@10.1.1.33:14550}"
 VRPN_SERVER="${VRPN_SERVER:-10.1.1.198}"
 AREC_WS="${AREC_WS:-/home/nv/arec_bags}"
 TOPIC_WAIT_TIMEOUT="${TOPIC_WAIT_TIMEOUT:-30}"
@@ -35,12 +36,14 @@ Options:
     --session NAME      Tmux session name (default: auto_hover)
     --serial PORT       Serial port device (default: /dev/ttyTHS0)
     --baudrate RATE     Serial baudrate (default: 921600)
+    --gcs-url URL       GCS URL for mavros (default: udp://@192.168.110.229:14550)
     --vrpn-server IP    VRPN server IP (default: 10.1.1.198)
 
 Environment Variables:
     SESSION             Tmux session name
     SERIAL_PORT         Serial port device
     BAUDRATE            Serial baudrate
+    GCS_URL             GCS URL
     VRPN_SERVER         VRPN server IP
     ROS_SETUP           ROS setup script path
     AREC_WS             AREC workspace path (default: /home/nv/arec_bags)
@@ -82,7 +85,7 @@ build_mavros_script() {
     cat <<EOF
 source "${COMMON_SH}"
 source "${ROS_SETUP}"
-roslaunch mavros px4.launch fcu_url:='${SERIAL_PORT}:${BAUDRATE}' &
+roslaunch mavros px4.launch fcu_url:='${SERIAL_PORT}:${BAUDRATE}' gcs_url:='${GCS_URL}' &
 roslaunch_pid=\$!
 sleep 5
 rosrun mavros mavcmd long 511 31 ${MAVCMD_ATTITUDE_RATE} 0 0 0 0 0
@@ -177,6 +180,10 @@ main() {
                 ;;
             --baudrate)
                 BAUDRATE="$2"
+                shift 2
+                ;;
+            --gcs-url)
+                GCS_URL="$2"
                 shift 2
                 ;;
             --vrpn-server)

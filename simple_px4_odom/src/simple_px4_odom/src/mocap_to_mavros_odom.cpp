@@ -34,9 +34,17 @@ private:
     out.header.frame_id = "odom";
     out.child_frame_id = "base_link";
 
-    Eigen::Vector3d p_enu(msg->pose.position.x,
-                          msg->pose.position.y,
-                          msg->pose.position.z);
+    double px = msg->pose.position.x;
+    double py = msg->pose.position.y;
+    double pz = msg->pose.position.z;
+
+    if (std::abs(px) > 1000.0 || std::abs(py) > 1000.0 || std::abs(pz) > 1000.0) {
+      px /= 1000.0;
+      py /= 1000.0;
+      pz /= 1000.0;
+    }
+
+    Eigen::Vector3d p_enu(px, py, pz);
     Eigen::Vector3d p_ned = q_enu_ned * p_enu;
 
     out.pose.pose.position.x = p_ned.x();
