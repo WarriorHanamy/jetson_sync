@@ -3,40 +3,52 @@
 #include <nav_msgs/Odometry.h>
 #include <Eigen/Geometry>
 #include <limits>
+#include <mutex>
 
 class MocapToMavrosOdom {
 public:
-  MocapToMavrosOdom() : last_pub_time_(0) {
+  MocapToMavrosOdom() : has_data_(false) {
     ros::NodeHandle pnh("~");
     pnh.param("output_rate", output_rate_, 50.0);
-    min_interval_ = 1.0 / output_rate_;
     sub_ = pnh.subscribe("pose", 50, &MocapToMavrosOdom::cb, this);
     pub_ = pnh.advertise<nav_msgs::Odometry>("/mavros/odometry/out", 50);
+    timer_ = pnh.createTimer(ros::Duration(1.0 / output_rate_), &MocapToMavrosOdom::timerCb, this);
   }
 
 private:
   ros::Subscriber sub_;
   ros::Publisher pub_;
+  ros::Timer timer_;
   double output_rate_;
-  double min_interval_;
-  ros::Time last_pub_time_;
+  geometry_msgs::PoseStamped latest_pose_;
+  bool has_data_;
+  std::mutex mutex_;
 
   static const Eigen::Quaterniond q_enu_ned;
   static const Eigen::Quaterniond q_flu_frd;
 
   void cb(const geometry_msgs::PoseStamped::ConstPtr& msg) {
-    ros::Time now = ros::Time::now();
-    if ((now - last_pub_time_).toSec() < min_interval_) return;
-    last_pub_time_ = now;
+    std::lock_guard<std::mutex> lock(mutex_);
+    latest_pose_ = *msg;
+    has_data_ = true;
+  }
+
+  void timerCb(const ros::TimerEvent&) {
+    geometry_msgs::PoseStamped msg;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (!has_data_) return;
+      msg = latest_pose_;
+    }
 
     nav_msgs::Odometry out;
-    out.header.stamp = ros::Time::now();
+    out.header.stamp = msg.header.stamp;
     out.header.frame_id = "odom";
     out.child_frame_id = "base_link";
 
-    double px = msg->pose.position.x;
-    double py = msg->pose.position.y;
-    double pz = msg->pose.position.z;
+    double px = msg.pose.position.x;
+    double py = msg.pose.position.y;
+    double pz = msg.pose.position.z;
 
     if (std::abs(px) > 1000.0 || std::abs(py) > 1000.0 || std::abs(pz) > 1000.0) {
       px /= 1000.0;
@@ -59,10 +71,10 @@ private:
     out.twist.twist.angular.y = nan_val;
     out.twist.twist.angular.z = nan_val;
 
-    Eigen::Quaterniond q_enu_flu(msg->pose.orientation.w,
-                                  msg->pose.orientation.x,
-                                  msg->pose.orientation.y,
-                                  msg->pose.orientation.z);
+    Eigen::Quaterniond q_enu_flu(msg.pose.orientation.w,
+                                  msg.pose.orientation.x,
+                                  msg.pose.orientation.y,
+                                  msg.pose.orientation.z);
     q_enu_flu.normalize();
     Eigen::Quaterniond q_ned_frd = q_enu_ned * q_enu_flu * q_flu_frd;
     q_ned_frd.normalize();
